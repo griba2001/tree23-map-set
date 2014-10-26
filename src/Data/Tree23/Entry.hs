@@ -55,10 +55,6 @@ filterEntry prop e @ (Entry _ _ Invalid) = e
 filterEntry prop e @ (Entry k v Valid) = if prop k then e else Entry k v Invalid
 
 {-
-
-mapEntry :: (a -> b) -> Entry a -> Entry b
-mapEntry f (Entry x v) = Entry (f x) v
-
 foldEntry :: (Monoid m) => (a -> m) -> Entry a -> m
 foldEntry f e = if isValid e then (f . entryItem $ e) else mempty
 -}
