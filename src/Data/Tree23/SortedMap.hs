@@ -4,9 +4,9 @@ module Data.Tree23.SortedMap (
   size,
   empty,
   singleton,
-  insert, insertWith,
-  delete,
-  member,
+  insert, insertWith, insertAll,
+  delete, deleteAll,
+  member, notMember,
   lookup,        
   fromList,
   toList,
@@ -14,8 +14,7 @@ module Data.Tree23.SortedMap (
   map,
   mapKeys,        
   mapKeysMonotonic,
-  filter,
-  partition,        
+  filter, partition,
   unionWith, unionL, unionR, union, 
   unions, unionsWith,
   clean,
@@ -79,6 +78,8 @@ fromList xs = F.foldl' (flip insert) empty xs
 toList :: Map k v -> [(k, v)]
 toList = D.toList . T23.toDList
 
+---------------------------------------------------------------
+
 keys :: Map k v -> [k]
 keys = fst . L.unzip . toList
 
@@ -125,8 +126,7 @@ unions (hd:tl) = L.foldl' (flip insert) hd tailElems
 unionsWith :: (Ord k) => (a -> a -> a) -> [Map k a] -> Map k a
 unionsWith f [] = T23.empty
 unionsWith f (hd:tl) = L.foldl' (flip (T23.insertWith f)) hd tailElems
-        where -- tailElems :: [a]
-              tailElems = L.concatMap toList tl
+        where tailElems = L.concatMap toList tl
 ----------------------------------------------------------------
 
 -- remove deleted

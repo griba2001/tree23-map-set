@@ -104,8 +104,7 @@ union = unionL
 unions :: (Ord k) => [Set k] -> Set k
 unions [] = T23.empty
 unions (hd:tl) = L.foldl' (flip insert) hd tailElems
-        where -- tailElems :: [a]
-              tailElems = L.concatMap toList tl
+        where tailElems = L.concatMap toList tl
               
 ----------------------------------------------------------------
 
