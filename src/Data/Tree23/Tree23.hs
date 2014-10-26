@@ -5,7 +5,7 @@ import Prelude hiding (maximum, minimum)
 import Data.Maybe as M
 import Data.Ord
 import qualified "dlist" Data.DList as D
-import Safe
+import qualified Safe
 import qualified Data.List as L
 
 import Data.Tree23.Entry as E
@@ -177,4 +177,4 @@ minimum f (Branch3 esq x mig y dreta)
 -- private
 
 firstOfMaybes :: [Maybe a] -> Maybe a
-firstOfMaybes xs = Safe.atDef Nothing (L.dropWhile isNothing xs) 0
+firstOfMaybes xs = Safe.headDef Nothing (L.dropWhile isNothing xs)
