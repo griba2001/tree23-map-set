@@ -155,26 +155,26 @@ mapEntriesMonotonic f (Branch3 esq x mig y dreta) = Branch3 (mapEntriesMonotonic
 maximum :: Ord k => (Entry k v -> b) -> Tree k v -> Maybe b
 maximum _ Nil = Nothing
 maximum f (Branch2 esq x dreta)
-        | isValid x = mblistFirst [(maximum f dreta), Just $ f x]
-        | otherwise = mblistFirst [(maximum f dreta), (maximum f esq)]
+        | isValid x = firstOfMaybes [(maximum f dreta), Just $ f x]
+        | otherwise = firstOfMaybes [(maximum f dreta), (maximum f esq)]
 
 maximum f (Branch3 esq x mig y dreta)
-        | isValid y = mblistFirst [(maximum f dreta), Just $ f y]
-        | isValid x = mblistFirst [(maximum f dreta), (maximum f mig), Just $ f x]
-        | otherwise = mblistFirst [(maximum f dreta), (maximum f mig), (maximum f esq)]
+        | isValid y = firstOfMaybes [(maximum f dreta), Just $ f y]
+        | isValid x = firstOfMaybes [(maximum f dreta), (maximum f mig), Just $ f x]
+        | otherwise = firstOfMaybes [(maximum f dreta), (maximum f mig), (maximum f esq)]
 
 minimum :: Ord k =>(Entry k v -> b) -> Tree k v -> Maybe b
 minimum _ Nil = Nothing
 minimum f (Branch2 esq x dreta)
-        | isValid x = mblistFirst [(minimum f esq), Just $ f x]
-        | otherwise = mblistFirst [(minimum f esq), (minimum f dreta)]
+        | isValid x = firstOfMaybes [(minimum f esq), Just $ f x]
+        | otherwise = firstOfMaybes [(minimum f esq), (minimum f dreta)]
 
 minimum f (Branch3 esq x mig y dreta)
-        | isValid x = mblistFirst [(minimum f esq), Just $ f x]
-        | isValid y = mblistFirst [(minimum f esq), (minimum f mig), Just $ f y]
-        | otherwise = mblistFirst [(minimum f esq), (minimum f mig), (minimum f dreta)]
+        | isValid x = firstOfMaybes [(minimum f esq), Just $ f x]
+        | isValid y = firstOfMaybes [(minimum f esq), (minimum f mig), Just $ f y]
+        | otherwise = firstOfMaybes [(minimum f esq), (minimum f mig), (minimum f dreta)]
 
 -- private
 
-mblistFirst :: [Maybe a] -> Maybe a
-mblistFirst xs = Safe.atDef Nothing (L.dropWhile isNothing xs) 0
+firstOfMaybes :: [Maybe a] -> Maybe a
+firstOfMaybes xs = Safe.atDef Nothing (L.dropWhile isNothing xs) 0
