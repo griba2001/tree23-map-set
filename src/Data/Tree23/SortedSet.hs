@@ -11,8 +11,7 @@ module Data.Tree23.SortedSet (
   toList,
   map,
   mapMonotonic,
-  filter,
-  partition,
+  filter, partition,
   unionL, unionR, union,
   unions,
   clean,
@@ -30,10 +29,7 @@ import Data.Foldable (Foldable(..))
 import qualified Data.Foldable as F
 
 import qualified Data.Tree23.Tree23 as T23
--- import Data.Tree23.MinMax
 import qualified Data.Tree23.Entry as E
-
--- import Data.Tree23.Pair
 
 type Set k = T23.Tree k ()
 
