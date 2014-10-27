@@ -101,14 +101,24 @@ instance (Ord a) => Monoid (Set a) where  -- requires extensions TypeSynonymInst
   mappend = union
 
 difference, intersection :: (Ord k) => Set k -> Set k -> Set k
+
+-- difference O(m · log n)
 difference tx ty = L.foldl' (flip delete) tx (toList ty)
 
+{-
+-- intersection
 intersection tx ty = flipValidity diff -- turn valids off, invalids on
   where
     diff = difference tx' ty
     tx' = clean tx
     flipValidity = T23.mapEntries E.flipEntryValid
-  
+    -}
+    
+-- intersection O(n · log m)
+intersection tx ty = L.foldl' (flip insert) empty xs
+  where
+    xs = [x | x <- toList tx, x `member` ty]
+    
 ----------------------------------------------------------------
 
 unions :: (Ord k) => [Set k] -> Set k
