@@ -97,7 +97,7 @@ mapKeysMonotonic f = T23.mapEntriesKeysMonotonic (E.mapEntryKey f)
 ----------------------------------------------------------------
 
 filter :: (k -> Bool) -> Map k v -> Map k v
-filter prop = T23.mapEntriesMonotonic (E.filterEntry prop)
+filter prop = T23.mapEntries (E.filterEntry prop)
 
 partition :: (k -> Bool) -> Map k v -> (Map k v, Map k v)
 partition p xs = (filter p xs, filter (not . p) xs)
@@ -117,8 +117,7 @@ union = unionL
 unions :: (Ord k) => [Map k v] -> Map k v
 unions [] = T23.empty
 unions (hd:tl) = L.foldl' (flip insert) hd tailElems
-        where -- tailElems :: [a]
-              tailElems = L.concatMap toList tl
+        where tailElems = L.concatMap toList tl
 
 unionsWith :: (Ord k) => (a -> a -> a) -> [Map k a] -> Map k a
 unionsWith f [] = T23.empty

@@ -54,7 +54,15 @@ filterEntry :: (k -> Bool) -> Entry k v -> Entry k v
 filterEntry prop e @ (Entry _ _ Invalid) = e
 filterEntry prop e @ (Entry k v Valid) = if prop k then e else Entry k v Invalid
 
+-- used to get intersection from difference
+flipEntryValid :: Entry k v -> Entry k v
+flipEntryValid (Entry k v Valid) = Entry k v Invalid
+flipEntryValid (Entry k v Invalid) = Entry k v Valid
+
 {-
-foldEntry :: (Monoid m) => (a -> m) -> Entry a -> m
-foldEntry f e = if isValid e then (f . entryItem $ e) else mempty
+foldEntryKey :: (Monoid m) => (k -> m) -> Entry k v -> m
+foldEntryKey f e = if isValid e then (f . key $ e) else mempty
+
+foldEntryVal :: (Monoid m) => (a -> m) -> Entry a -> m
+foldEntryVal f e = if isValid e then (f . val $ e) else mempty
 -}

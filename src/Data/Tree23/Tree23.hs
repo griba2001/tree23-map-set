@@ -147,10 +147,10 @@ mapEntriesKeysMonotonic f Nil = Nil
 mapEntriesKeysMonotonic f (Branch2 esq x dreta) = Branch2 (mapEntriesKeysMonotonic f esq) (f x) (mapEntriesKeysMonotonic f dreta)
 mapEntriesKeysMonotonic f (Branch3 esq x mig y dreta) = Branch3 (mapEntriesKeysMonotonic f esq) (f x) (mapEntriesKeysMonotonic f mig) (f y) (mapEntriesKeysMonotonic f dreta)
 
-mapEntriesMonotonic :: (Entry k v -> Entry k v) -> Tree k v -> Tree k v
-mapEntriesMonotonic f Nil = Nil
-mapEntriesMonotonic f (Branch2 esq x dreta) = Branch2 (mapEntriesMonotonic f esq) (f x) (mapEntriesMonotonic f dreta)
-mapEntriesMonotonic f (Branch3 esq x mig y dreta) = Branch3 (mapEntriesMonotonic f esq) (f x) (mapEntriesMonotonic f mig) (f y) (mapEntriesMonotonic f dreta)
+mapEntries :: (Entry k v -> Entry k v) -> Tree k v -> Tree k v
+mapEntries f Nil = Nil
+mapEntries f (Branch2 esq x dreta) = Branch2 (mapEntries f esq) (f x) (mapEntries f dreta)
+mapEntries f (Branch3 esq x mig y dreta) = Branch3 (mapEntries f esq) (f x) (mapEntries f mig) (f y) (mapEntries f dreta)
 
 maximum :: Ord k => (Entry k v -> b) -> Tree k v -> Maybe b
 maximum _ Nil = Nothing
@@ -178,3 +178,19 @@ minimum f (Branch3 esq x mig y dreta)
 
 firstOfMaybes :: [Maybe a] -> Maybe a
 firstOfMaybes xs = Safe.headDef Nothing (L.dropWhile isNothing xs)
+
+------------------------------------------------------------------------------------
+{-
+foldMapKey :: Monoid m => (k -> m) -> Tree k v -> m
+foldMapKey f Nil = mempty
+  -- foldMap elements from the right
+foldMapKey f (Branch2 l e1 r) = foldMapKey f r <> foldEntryKey f e1 <> foldMapKey f l
+foldMapKey f (Branch3 l e1 mid e2 r) = foldMapKey f r <> foldEntryKey f e2 <> foldMapKey f mid <> foldEntryKey f e1 <> foldMapKey f l
+
+
+foldMapVal :: Monoid m => (v -> m) -> Tree k v -> m
+foldMapVal f Nil = mempty
+  -- foldMap elements from the right
+foldMapVal f (Branch2 l e1 r) = foldMapVal f r <> foldEntryVal f e1 <> foldMapVal f l
+foldMapVal f (Branch3 l e1 mid e2 r) = foldMapVal f r <> foldEntryVal f e2 <> foldMapVal f mid <> foldEntryVal f e1 <> foldMapVal f l
+-}

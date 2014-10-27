@@ -1,4 +1,4 @@
-{-# LANGUAGE PackageImports, BangPatterns #-}
+{-# LANGUAGE PackageImports, TypeSynonymInstances, FlexibleInstances #-}
 module Data.Tree23.SortedSet (
   Set,
   size,
@@ -14,6 +14,7 @@ module Data.Tree23.SortedSet (
   filter, partition,
   unionL, unionR, union,
   unions,
+  difference, intersection,        
   clean,
   findMin, findMax,
 ) where
@@ -83,7 +84,7 @@ mapMonotonic f = T23.mapEntriesKeysMonotonic (E.mapEntryKey f)
 ----------------------------------------------------------------
 
 filter :: (k -> Bool) -> Set k -> Set k
-filter prop = T23.mapEntriesMonotonic (E.filterEntry prop)
+filter prop = T23.mapEntries (E.filterEntry prop)
 
 partition :: (k -> Bool) -> Set k -> (Set k, Set k)
 partition p xs = (filter p xs, filter (not . p) xs)
@@ -95,6 +96,19 @@ unionR tx ty = L.foldl' (flip insert) tx (toList ty) -- on collision it keeps la
 unionL tx ty = L.foldl' (flip insert) ty (toList tx) -- on collision it keeps last inserted
 union = unionL
 
+instance (Ord a) => Monoid (Set a) where  -- requires extensions TypeSynonymInstances, FlexibleInstances
+  mempty = empty
+  mappend = union
+
+difference, intersection :: (Ord k) => Set k -> Set k -> Set k
+difference tx ty = L.foldl' (flip delete) tx (toList ty)
+
+intersection tx ty = flipValidity diff -- turn valids off, invalids on
+  where
+    diff = difference tx' ty
+    tx' = clean tx
+    flipValidity = T23.mapEntries E.flipEntryValid
+  
 ----------------------------------------------------------------
 
 unions :: (Ord k) => [Set k] -> Set k
