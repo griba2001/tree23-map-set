@@ -8,6 +8,7 @@ import qualified Data.List as L
 import Control.Monad
 import Control.Category as C
 import Distribution.TestSuite as TS
+import Data.Maybe
 
 
 propInsertMember :: [Int] -> Bool
@@ -45,6 +46,18 @@ propSortedAfterDeletes xs = compare (S.toList tr2) orderedSeq == EQ
 propYieldsOrigin :: [Int] -> Bool
 propYieldsOrigin xs = compare (S.toList . S.fromList $ xs) (L.sort . L.nub $ xs) == EQ
 
+propMaximum :: [Int] -> Bool
+propMaximum [] = True
+propMaximum xs = tmax == maximum xs
+  where
+    tmax = fromJust $ S.findMax $ S.fromList xs
+
+propMinimum :: [Int] -> Bool
+propMinimum [] = True
+propMinimum xs = tmin == minimum xs
+  where
+    tmin = fromJust $ S.findMin $ S.fromList xs
+
 -------------------------------------------------------                
 
 toTSResult :: Q.Result -> TS.Result
@@ -62,4 +75,7 @@ tests = return [ Test $ TestInstance (runQuickCheck propInsertMember) "propInser
                  Test $ TestInstance (runQuickCheck propDeleteAfterInsertImpliesNotMember) "propDeleteAfterInsertImpliesNotMember" ["set"] [] undefined,
                  Test $ TestInstance (runQuickCheck propSorted) "propSorted" ["set"] [] undefined,
                  Test $ TestInstance (runQuickCheck propYieldsOrigin) "propYieldsOrigin" ["set"] [] undefined,        
-                 Test $ TestInstance (runQuickCheck propSortedAfterDeletes) "propSortedAfterDeletes" ["set"] [] undefined]
+                 Test $ TestInstance (runQuickCheck propSortedAfterDeletes) "propSortedAfterDeletes" ["set"] [] undefined,
+                 Test $ TestInstance (runQuickCheck propMaximum) "propMaximum" ["set"] [] undefined,
+                 Test $ TestInstance (runQuickCheck propMinimum) "propMinimum" ["set"] [] undefined
+                 ]
