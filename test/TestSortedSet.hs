@@ -8,12 +8,9 @@ import Control.Category as C
 import Data.Maybe
 
 propInsertMember :: [Int] -> Bool
-propInsertMember xs = L.all prop xs
+propInsertMember xs = L.all (\x -> S.member x set) xs
   where
-          -- tr :: Set Int
-          tr = S.insertAll xs S.empty
-          -- prop :: Int -> Bool
-          prop x = S.member x tr
+          set = S.insertAll xs S.empty
 
 (.$) :: a -> (a -> b) -> b
 x .$ f = f x
