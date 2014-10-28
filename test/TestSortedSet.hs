@@ -44,15 +44,15 @@ propYieldsOrigin xs = compare (S.toList . S.fromList $ xs) (L.sort . L.nub $ xs)
 
 propMaximum :: [Int] -> Bool
 propMaximum [] = True
-propMaximum xs = tmax == maximum xs
+propMaximum xs = maxSet == maximum xs
   where
-    tmax = fromJust $ S.findMax $ S.fromList xs
+    Just maxSet = S.findMax $ S.fromList xs
 
 propMinimum :: [Int] -> Bool
 propMinimum [] = True
-propMinimum xs = tmin == minimum xs
+propMinimum xs = minSet == minimum xs
   where
-    tmin = fromJust $ S.findMin $ S.fromList xs
+    Just minSet = S.findMin $ S.fromList xs
 
 -------------------------------------------------------
 
