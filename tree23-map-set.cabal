@@ -32,6 +32,7 @@ Test-Suite test-tree23
   type:                 detailed-0.9
   Hs-Source-Dirs:       test
   test-module:          TestDetailed
+  other-modules:        TestSortedSet
   Default-Language:     Haskell2010
   Build-Depends:        base, Cabal >= 1.20.0
                       , QuickCheck >= 2.4
