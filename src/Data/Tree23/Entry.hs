@@ -8,7 +8,7 @@ import qualified "dlist" Data.DList as D
 
 data Valid = Valid | Invalid deriving (Eq, Show)
 
-data Entry k v = Entry {key::k, value::v, valid::Valid}  deriving Show
+data Entry k v = Entry {key :: k, value :: v, valid :: Valid}  deriving Show
 
 instance Eq k => Eq (Entry k v) where
   (Entry x _ _) == (Entry y _ _) = x == y

@@ -4,7 +4,7 @@ module Data.Tree23.Tree23 (
   empty, singleton,
   null, size,
   insert, insertWith,
-  delete, update,
+  delete, -- update,
   member, lookup,
   mapEntries, mapEntriesValues, mapEntriesKeysMonotonic,        
   minimum, maximum,
@@ -89,7 +89,7 @@ insert f x (Branch3 esq y mig z dreta)
                           ResTree arb -> ResTree $ Branch3 esq y mig z arb
                           ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 esq y mig z (Branch2 f1 a f2) b (Branch2 f3 c f4)
 
-
+{-
 update :: Ord k => Entry k v -> Tree k v -> Tree k v
 update _ Nil = Nil
 
@@ -98,8 +98,8 @@ update x ar @ (Branch2 Nil y Nil)
         | otherwise = ar
 
 update x ar @ (Branch3 Nil y Nil z Nil)
-        | x == y = Branch2 Nil z Nil
-        | x == z = Branch2 Nil y Nil
+        | x == y = Branch3 Nil x Nil z Nil
+        | x == z = Branch3 Nil y Nil x Nil
         | otherwise = ar
 
 update x ar @ (Branch2 esq y dreta)
@@ -114,6 +114,8 @@ update x ar @ (Branch3 esq y mig z dreta)
         | x < z = Branch3 esq y (update x mig) z dreta
         | otherwise = Branch3 esq y mig z (update x dreta)
 
+       -}
+       
 lookup :: Ord k => k -> Tree k v -> Maybe (k, v)
 lookup k Nil = Nothing
 lookup k (Branch2 esq y dreta)
