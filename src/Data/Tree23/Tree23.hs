@@ -3,7 +3,7 @@ module Data.Tree23.Tree23 (
   Tree,
   empty, singleton,
   null, size,
-  insert, insertWith,
+  insertWith,
   delete, -- update,
   member, lookup,
   mapEntries, mapEntriesValues, mapEntriesKeysMonotonic,        
@@ -50,7 +50,7 @@ insertWith f (k, v) !arb = case insert f (Entry k v Valid) arb of
                      ResBranch4 f1 a f2 b f3 c f4 -> Branch2 (Branch2 f1 a f2) b (Branch2 f3 c f4)
 
 
--- insert entry with collision combine function f
+-- private: insert entry with collision combine function f
 insert :: Ord k => (v -> v -> v) -> Entry k v -> Tree k v -> Result k v
 
 insert f x Nil = ResTree $ Branch2 Nil x Nil
