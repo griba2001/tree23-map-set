@@ -4,19 +4,17 @@ module Data.Tree23.Entry where
 import Data.Maybe
 import Data.Ord
 import qualified "dlist" Data.DList as D
-import Data.Monoid (Monoid, mempty, mappend, (<>), mconcat)
-
--- import Data.Tree23.Pair
+-- import Data.Monoid (Monoid, mempty, mappend, (<>), mconcat)
 
 data Valid = Valid | Invalid deriving (Eq, Show)
 
-data Entry k v = Entry {key::k, val::v, valid::Valid}  deriving Show
+data Entry k v = Entry {key::k, value::v, valid::Valid}  deriving Show
 
 instance Eq k => Eq (Entry k v) where
   (Entry x _ _) == (Entry y _ _) = x == y
 
 entryPair :: Entry k v -> (k, v)
-entryPair e @ Entry {key, val} = (key, val)
+entryPair e @ Entry {key, value} = (key, value)
 
 instance Ord k => Ord (Entry k v) where
   compare = comparing key
@@ -64,5 +62,5 @@ foldEntryKey :: (Monoid m) => (k -> m) -> Entry k v -> m
 foldEntryKey f e = if isValid e then (f . key $ e) else mempty
 
 foldEntryVal :: (Monoid m) => (a -> m) -> Entry a -> m
-foldEntryVal f e = if isValid e then (f . val $ e) else mempty
+foldEntryVal f e = if isValid e then (f . value $ e) else mempty
 -}
