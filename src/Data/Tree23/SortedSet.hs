@@ -1,30 +1,25 @@
-{-# LANGUAGE PackageImports, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 module Data.Tree23.SortedSet (
   Set,
-  size,
-  empty,
-  singleton,
+  empty, singleton,
+  null, size,        
   insert, insertAll,
   delete, deleteAll,
   member, notMember,
-  fromList,
-  toList,
-  map,
-  mapMonotonic,
+  fromList, toList,
+  map, mapMonotonic,
   filter, partition,
-  unionL, unionR, union,
-  unions,
+  unionL, unionR, union, unions,
   difference, intersection,        
   clean,
   findMin, findMax,
 ) where
 
-import Prelude hiding (findMin, minimum, map, filter)
+import Prelude hiding (null, findMin, minimum, map, filter)
 
 import Data.Maybe
 import Data.Ord
 import qualified Data.List as L
-import qualified "dlist" Data.DList as D
 import Data.Monoid (Monoid, mempty, mappend, (<>), mconcat)
 import Data.Foldable (Foldable(..))
 import qualified Data.Foldable as F
@@ -37,7 +32,10 @@ type Set k = T23.Tree k ()
 empty :: Set k
 empty = T23.empty
 
-singleton :: k ->Set k
+null :: Set k -> Bool
+null = T23.null
+
+singleton :: k -> Set k
 singleton x = T23.singleton x ()
 
 -- | size O(log n)
@@ -53,15 +51,15 @@ insertAll xs set = F.foldl' (flip insert) set xs
 
 -- | delete O( log n)
 delete :: Ord k => k -> Set k -> Set k
-delete k = T23.deleteB k
+delete k = T23.delete k
 
 deleteAll :: (Ord k, Foldable t) => t k -> Set k -> Set k
 deleteAll xs set = F.foldl' (flip delete) set xs
 
 -- | member O( log n)
 member, notMember :: Ord k => k -> Set k -> Bool
-member k = T23.containsB k
-notMember k = not . T23.containsB k
+member = T23.member
+notMember k = not . T23.member k
 
 ---------------------------------------------------------------
 
@@ -71,7 +69,7 @@ fromList xs = F.foldl' (flip insert) empty xs
 
 -- | toList O( n) uses DList to append the subtrees and nodes results
 toList :: Set k -> [k]
-toList = fst . L.unzip . D.toList . T23.toDList
+toList = fst . L.unzip . T23.toList
 
 ---------------------------------------------------------------
 -- | map through list conversion

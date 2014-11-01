@@ -1,7 +1,17 @@
 {-# LANGUAGE PackageImports, BangPatterns #-}
-module Data.Tree23.Tree23 where
+module Data.Tree23.Tree23 (
+  Tree,
+  empty, singleton,
+  null, size,
+  insert, insertWith,
+  delete, update,
+  member, lookup,
+  mapEntries, mapEntriesValues, mapEntriesKeysMonotonic,        
+  minimum, maximum,
+  toList,
+) where
 
-import Prelude hiding (maximum, minimum)
+import Prelude hiding (null, lookup, maximum, minimum)
 import Data.Maybe as M
 import Data.Ord
 import qualified "dlist" Data.DList as D
@@ -13,13 +23,17 @@ import Data.Tree23.Entry as E
 data Tree k v = Nil | Branch2 (Tree k v) (Entry k v) (Tree k v)
                | Branch3 (Tree k v) (Entry k v) (Tree k v) (Entry k v) (Tree k v) deriving (Eq, Show)
 
-data Result k v = ResT (Tree k v) | Branch4 (Tree k v) (Entry k v) (Tree k v) (Entry k v) (Tree k v) (Entry k v) (Tree k v)
+data Result k v = ResTree (Tree k v) | ResBranch4 (Tree k v) (Entry k v) (Tree k v) (Entry k v) (Tree k v) (Entry k v) (Tree k v)
 
 empty :: Tree k v
 empty = Nil
 
 singleton :: k -> v -> Tree k v
 singleton k v = Branch2 Nil (Entry k v Valid) Nil
+
+null :: Tree k v -> Bool
+null Nil = True
+null _ = False
 
 size :: Tree k v -> Int
 size Nil = 0
@@ -31,111 +45,114 @@ size (Branch3 esq _ mig _ dreta) = 2 + size esq + size mig + size dreta
 -- insert or update (strict to avoid O(n) stack pending ops when used with List.foldl').
 insertWith :: Ord k => (v -> v -> v) -> (k, v) -> Tree k v -> Tree k v
 insertWith f (k, v) Nil = singleton k v
-insertWith f (k, v) !arb = case insertB f (Entry k v Valid) arb of
-                     ResT res -> res
-                     Branch4 f1 a f2 b f3 c f4 -> Branch2 (Branch2 f1 a f2) b (Branch2 f3 c f4)
+insertWith f (k, v) !arb = case insert f (Entry k v Valid) arb of
+                     ResTree res -> res
+                     ResBranch4 f1 a f2 b f3 c f4 -> Branch2 (Branch2 f1 a f2) b (Branch2 f3 c f4)
 
 
 -- insert entry with collision combine function f
-insertB :: Ord k => (v -> v -> v) -> Entry k v -> Tree k v -> Result k v
+insert :: Ord k => (v -> v -> v) -> Entry k v -> Tree k v -> Result k v
 
-insertB f x Nil = ResT $ Branch2 Nil x Nil
+insert f x Nil = ResTree $ Branch2 Nil x Nil
 
-insertB f x (Branch2 Nil y Nil)
-    | x == y = ResT $ Branch2 Nil (combineEntry f y x) Nil
-    | x < y = ResT $ Branch3 Nil x Nil y Nil
-    | otherwise = ResT $ Branch3 Nil y Nil x Nil
+insert f x (Branch2 Nil y Nil)
+    | x == y = ResTree $ Branch2 Nil (combineEntry f y x) Nil
+    | x < y = ResTree $ Branch3 Nil x Nil y Nil
+    | otherwise = ResTree $ Branch3 Nil y Nil x Nil
 
-insertB f x (Branch3 Nil y Nil z Nil)
-    | x == y = ResT $ Branch3 Nil (combineEntry f y x) Nil z Nil
-    | x == z = ResT $ Branch3 Nil y Nil (combineEntry f z x) Nil
-    | x < y = Branch4 Nil x Nil y Nil z Nil
-    | x < z = Branch4 Nil y Nil x Nil z Nil
-    | otherwise = Branch4 Nil y Nil z Nil x Nil
+insert f x (Branch3 Nil y Nil z Nil)
+    | x == y = ResTree $ Branch3 Nil (combineEntry f y x) Nil z Nil
+    | x == z = ResTree $ Branch3 Nil y Nil (combineEntry f z x) Nil
+    | x < y = ResBranch4 Nil x Nil y Nil z Nil
+    | x < z = ResBranch4 Nil y Nil x Nil z Nil
+    | otherwise = ResBranch4 Nil y Nil z Nil x Nil
 
-insertB f x (Branch2 esq y dreta)
-        | x == y = ResT $ Branch2 esq (combineEntry f y x) dreta
-        | x < y = case insertB f x esq of
-                       ResT arb -> ResT $ Branch2 arb y dreta
-                       Branch4 f1 a f2 b f3 c f4 -> ResT $ Branch3 (Branch2 f1 a f2) b (Branch2 f3 c f4) y dreta
-        | otherwise = case insertB f x dreta of
-                           ResT arb -> ResT $ Branch2 esq y arb
-                           Branch4 f1 a f2 b f3 c f4 -> ResT $ Branch3 esq y (Branch2 f1 a f2) b (Branch2 f3 c f4)
+insert f x (Branch2 esq y dreta)
+        | x == y = ResTree $ Branch2 esq (combineEntry f y x) dreta
+        | x < y = case insert f x esq of
+                       ResTree arb -> ResTree $ Branch2 arb y dreta
+                       ResBranch4 f1 a f2 b f3 c f4 -> ResTree $ Branch3 (Branch2 f1 a f2) b (Branch2 f3 c f4) y dreta
+        | otherwise = case insert f x dreta of
+                           ResTree arb -> ResTree $ Branch2 esq y arb
+                           ResBranch4 f1 a f2 b f3 c f4 -> ResTree $ Branch3 esq y (Branch2 f1 a f2) b (Branch2 f3 c f4)
 
-insertB f x (Branch3 esq y mig z dreta)
-        | x == y = ResT $ Branch3 esq (combineEntry f y x) mig z dreta
-        | x == z = ResT $ Branch3 esq y mig (combineEntry f z x) dreta
-        | x < y = case insertB f x esq of
-                        ResT arb -> ResT $ Branch3 arb y mig z dreta
-                        Branch4 f1 a f2 b f3 c f4 -> Branch4 (Branch2 f1 a f2) b (Branch2 f3 c f4) y mig z dreta
-        | x < z = case insertB f x mig of
-                        ResT arb -> ResT $ Branch3 esq y arb z dreta
-                        Branch4 f1 a f2 b f3 c f4 -> Branch4 esq y (Branch2 f1 a f2) b (Branch2 f3 c f4) z dreta
-        | otherwise = case insertB f x dreta of
-                          ResT arb -> ResT $ Branch3 esq y mig z arb
-                          Branch4 f1 a f2 b f3 c f4 -> Branch4 esq y mig z (Branch2 f1 a f2) b (Branch2 f3 c f4)
+insert f x (Branch3 esq y mig z dreta)
+        | x == y = ResTree $ Branch3 esq (combineEntry f y x) mig z dreta
+        | x == z = ResTree $ Branch3 esq y mig (combineEntry f z x) dreta
+        | x < y = case insert f x esq of
+                        ResTree arb -> ResTree $ Branch3 arb y mig z dreta
+                        ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 (Branch2 f1 a f2) b (Branch2 f3 c f4) y mig z dreta
+        | x < z = case insert f x mig of
+                        ResTree arb -> ResTree $ Branch3 esq y arb z dreta
+                        ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 esq y (Branch2 f1 a f2) b (Branch2 f3 c f4) z dreta
+        | otherwise = case insert f x dreta of
+                          ResTree arb -> ResTree $ Branch3 esq y mig z arb
+                          ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 esq y mig z (Branch2 f1 a f2) b (Branch2 f3 c f4)
 
 
-updateB :: Ord k => Entry k v -> Tree k v -> Tree k v
-updateB _ Nil = Nil
+update :: Ord k => Entry k v -> Tree k v -> Tree k v
+update _ Nil = Nil
 
-updateB x ar @ (Branch2 Nil y Nil)
+update x ar @ (Branch2 Nil y Nil)
         | x == y = Branch2 Nil x Nil
         | otherwise = ar
 
-updateB x ar @ (Branch3 Nil y Nil z Nil)
+update x ar @ (Branch3 Nil y Nil z Nil)
         | x == y = Branch2 Nil z Nil
         | x == z = Branch2 Nil y Nil
         | otherwise = ar
 
-updateB x ar @ (Branch2 esq y dreta)
+update x ar @ (Branch2 esq y dreta)
         | x == y = Branch2 esq x dreta
-        | x < y = Branch2 (updateB x esq) y dreta
-        | otherwise = Branch2 esq y (updateB x dreta)
+        | x < y = Branch2 (update x esq) y dreta
+        | otherwise = Branch2 esq y (update x dreta)
 
-updateB x ar @ (Branch3 esq y mig z dreta)
+update x ar @ (Branch3 esq y mig z dreta)
         | x == y = Branch3 esq x mig z dreta
         | x == z = Branch3 esq y mig x dreta
-        | x < y = Branch3 (updateB x esq) y mig z dreta
-        | x < z = Branch3 esq y (updateB x mig) z dreta
-        | otherwise = Branch3 esq y mig z (updateB x dreta)
+        | x < y = Branch3 (update x esq) y mig z dreta
+        | x < z = Branch3 esq y (update x mig) z dreta
+        | otherwise = Branch3 esq y mig z (update x dreta)
 
-lookupB :: Ord k => k -> Tree k v -> Maybe (k, v)
-lookupB k Nil = Nothing
-lookupB k (Branch2 esq y dreta)
+lookup :: Ord k => k -> Tree k v -> Maybe (k, v)
+lookup k Nil = Nothing
+lookup k (Branch2 esq y dreta)
         | k == key y = E.toMaybe y
-        | k < key y = lookupB k esq
-        | otherwise = lookupB k dreta
+        | k < key y = lookup k esq
+        | otherwise = lookup k dreta
 
-lookupB k (Branch3 esq y mig z dreta)
+lookup k (Branch3 esq y mig z dreta)
         | k == key y = E.toMaybe y
         | k == key z = E.toMaybe z
-        | k < key y = lookupB k esq
-        | k < key z = lookupB k mig
-        | otherwise = lookupB k dreta
+        | k < key y = lookup k esq
+        | k < key z = lookup k mig
+        | otherwise = lookup k dreta
 
-containsB :: Ord k => k -> Tree k v -> Bool
-containsB k t = isJust $ lookupB k t
+member :: Ord k => k -> Tree k v -> Bool
+member k t = isJust $ lookup k t
 
-deleteB :: Ord k => k -> Tree k v -> Tree k v
-deleteB _ Nil = Nil
+delete :: Ord k => k -> Tree k v -> Tree k v
+delete _ Nil = Nil
 
-deleteB k ar @ (Branch2 esq y dreta)
+delete k ar @ (Branch2 esq y dreta)
         | k == key y = Branch2 esq (invalidate y) dreta
-        | k < key y = Branch2 (deleteB k esq) y dreta
-        | otherwise = Branch2 esq y (deleteB k dreta)
+        | k < key y = Branch2 (delete k esq) y dreta
+        | otherwise = Branch2 esq y (delete k dreta)
 
-deleteB k ar @ (Branch3 esq y mig z dreta)
+delete k ar @ (Branch3 esq y mig z dreta)
         | k == key y = Branch3 esq (invalidate y) mig z dreta
         | k == key z = Branch3 esq y mig (invalidate z) dreta
-        | k < key y = Branch3 (deleteB k esq) y mig z dreta
-        | k < key z = Branch3 esq y (deleteB k mig) z dreta
-        | otherwise = Branch3 esq y mig z (deleteB k dreta)
+        | k < key y = Branch3 (delete k esq) y mig z dreta
+        | k < key z = Branch3 esq y (delete k mig) z dreta
+        | otherwise = Branch3 esq y mig z (delete k dreta)
 
 toDList :: Tree k v -> D.DList (k, v)
 toDList Nil = D.empty
 toDList (Branch2 esq x dreta) = toDList esq `D.append` valToDList x `D.append` toDList dreta
 toDList (Branch3 esq x mig y dreta) = toDList esq `D.append` valToDList x `D.append` toDList mig `D.append` valToDList y `D.append` toDList dreta
+
+toList :: Tree k v -> [(k, v)]
+toList = D.toList . toDList
 
 mapEntriesValues :: (Entry k v1 -> Entry k v2) -> Tree k v1 -> Tree k v2
 mapEntriesValues f Nil = Nil

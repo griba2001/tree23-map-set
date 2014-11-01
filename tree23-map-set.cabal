@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                tree23-map-set
-version:             0.2.0.0
+version:             0.2.0.1
 synopsis:            2-3tree based sorted set / map.
 description:         2-3tree (uniform depth) based sorted set / map with node deletion mark.
 license:             BSD3
@@ -17,9 +17,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Data.Tree23.SortedMap, Data.Tree23.SortedSet,
-                       Data.Tree23.Entry, Data.Tree23.Tree23
-                       -- Data.Tree23.MinMax 
-                       -- Data.Tree23.Pair
+                       Data.Tree23.Tree23, Data.Tree23.Entry
   -- other-modules:       
   other-extensions:    PackageImports, BangPatterns
   build-depends:       base >=4.7 && <4.8,

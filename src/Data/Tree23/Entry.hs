@@ -15,8 +15,8 @@ data Entry k v = Entry {key::k, val::v, valid::Valid}  deriving Show
 instance Eq k => Eq (Entry k v) where
   (Entry x _ _) == (Entry y _ _) = x == y
 
-entryItem :: Entry k v -> (k, v)
-entryItem e @ Entry {key, val} = (key, val)
+entryPair :: Entry k v -> (k, v)
+entryPair e @ Entry {key, val} = (key, val)
 
 instance Ord k => Ord (Entry k v) where
   compare = comparing key

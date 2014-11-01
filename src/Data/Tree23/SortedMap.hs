@@ -1,32 +1,27 @@
-{-# LANGUAGE PackageImports, BangPatterns #-}
+{-# LANGUAGE BangPatterns #-}
 module Data.Tree23.SortedMap (
   Map,
-  size,
-  empty,
-  singleton,
+  empty, singleton,
+  null, size,        
   insert, insertWith, insertAll,
   delete, deleteAll,
   member, notMember,
   lookup,        
-  fromList,
-  toList,
+  fromList, toList,
   keys, values,
-  map,
-  mapKeys,        
-  mapKeysMonotonic,
+  map, mapKeys, mapKeysMonotonic,
   filter, partition,
   unionWith, unionL, unionR, union, 
   unions, unionsWith,
-  clean,
   findMin, findMax,
+  clean,
 ) where
 
-import Prelude hiding (map, filter, lookup)
+import Prelude hiding (null, map, filter, lookup)
 
 import Data.Maybe
 import Data.Ord
 import qualified Data.List as L
-import qualified "dlist" Data.DList as D
 import Data.Monoid (Monoid, mempty, mappend, (<>), mconcat)
 import Data.Foldable (Foldable(..))
 import qualified Data.Foldable as F
@@ -38,6 +33,9 @@ type Map k v = T23.Tree k v
 
 empty :: Map k v
 empty = T23.empty
+
+null :: Map k v -> Bool
+null = T23.null
 
 singleton :: k -> v -> Map k v
 singleton = T23.singleton
@@ -56,24 +54,24 @@ insertAll :: (Ord k, Foldable t) => t (k, v) -> Map k v -> Map k v
 insertAll xs map = F.foldl' (flip insert) map xs
 
 delete :: Ord k => k -> Map k v -> Map k v
-delete = T23.deleteB
+delete = T23.delete
 
 deleteAll :: (Ord k, Foldable t) => t k -> Map k v -> Map k v
-deleteAll xs map = F.foldl' (flip delete) map xs
+deleteAll xs map = F.foldl' (flip T23.delete) map xs
 
 member, notMember :: Ord k => k -> Map k v -> Bool
-member = T23.containsB
-notMember k = not . T23.containsB k
+member = T23.member
+notMember k = not . T23.member k
 
 lookup :: Ord k => k -> Map k v -> Maybe (k, v)
-lookup = T23.lookupB
+lookup = T23.lookup
 ---------------------------------------------------------------
 
 fromList :: (Ord k, Foldable t) => t (k, v) -> Map k v
 fromList xs = F.foldl' (flip insert) empty xs
 
 toList :: Map k v -> [(k, v)]
-toList = D.toList . T23.toDList
+toList = T23.toList
 
 ---------------------------------------------------------------
 
@@ -132,7 +130,7 @@ clean = fromList . toList
 ----------------------------------------------------------------
 
 findMin :: Ord k => Map k v -> Maybe (k, v)
-findMin = T23.minimum E.entryItem
+findMin = T23.minimum E.entryPair
 
 findMax :: Ord k => Map k v -> Maybe (k, v)
-findMax = T23.maximum E.entryItem
+findMax = T23.maximum E.entryPair
