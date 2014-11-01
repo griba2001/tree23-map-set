@@ -171,28 +171,16 @@ mapEntries f Nil = Nil
 mapEntries f (Branch2 esq x dreta) = Branch2 (mapEntries f esq) (f x) (mapEntries f dreta)
 mapEntries f (Branch3 esq x mig y dreta) = Branch3 (mapEntries f esq) (f x) (mapEntries f mig) (f y) (mapEntries f dreta)
 
-maximum :: Ord k => (Entry k v -> b) -> Tree k v -> Maybe b
-maximum _ Nil = Nothing
-maximum f (Branch2 esq x dreta)
-        | isValid x = firstOfMaybes [(maximum f dreta), Just $ f x]
-        | otherwise = firstOfMaybes [(maximum f dreta), (maximum f esq)]
+minimum, maximum :: Ord k => Tree k v -> Maybe (k, v)
 
-maximum f (Branch3 esq x mig y dreta)
-        | isValid y = firstOfMaybes [(maximum f dreta), Just $ f y]
-        | isValid x = firstOfMaybes [(maximum f dreta), (maximum f mig), Just $ f x]
-        | otherwise = firstOfMaybes [(maximum f dreta), (maximum f mig), (maximum f esq)]
+minimum Nil = Nothing
+minimum (Branch2 esq x dreta) = firstOfMaybes [(minimum esq), E.toMaybe x, (minimum dreta)]
+minimum (Branch3 esq x mig y dreta) = firstOfMaybes [(minimum esq), E.toMaybe x, (minimum mig), E.toMaybe y, (minimum dreta)]
 
-minimum :: Ord k =>(Entry k v -> b) -> Tree k v -> Maybe b
-minimum _ Nil = Nothing
-minimum f (Branch2 esq x dreta)
-        | isValid x = firstOfMaybes [(minimum f esq), Just $ f x]
-        | otherwise = firstOfMaybes [(minimum f esq), (minimum f dreta)]
-
-minimum f (Branch3 esq x mig y dreta)
-        | isValid x = firstOfMaybes [(minimum f esq), Just $ f x]
-        | isValid y = firstOfMaybes [(minimum f esq), (minimum f mig), Just $ f y]
-        | otherwise = firstOfMaybes [(minimum f esq), (minimum f mig), (minimum f dreta)]
-
+maximum Nil = Nothing
+maximum (Branch2 esq x dreta) = firstOfMaybes [(maximum dreta), E.toMaybe x, (maximum esq)]
+maximum (Branch3 esq x mig y dreta) = firstOfMaybes [(maximum dreta), E.toMaybe y, (maximum mig), E.toMaybe x, (maximum esq)]
+        
 -- private
 
 firstOfMaybes :: [Maybe a] -> Maybe a

@@ -129,8 +129,7 @@ clean = fromList . toList
 
 ----------------------------------------------------------------
 
-findMin :: Ord k => Map k v -> Maybe (k, v)
-findMin = T23.minimum E.entryPair
+findMin, findMax :: Ord k => Map k v -> Maybe (k, v)
+findMin = T23.minimum
 
-findMax :: Ord k => Map k v -> Maybe (k, v)
-findMax = T23.maximum E.entryPair
+findMax = T23.maximum

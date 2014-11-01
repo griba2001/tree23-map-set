@@ -132,9 +132,8 @@ clean = fromList . toList
 
 ----------------------------------------------------------------
 
-findMin :: Ord k => Set k -> Maybe k
-findMin = T23.minimum E.key
+findMin, findMax :: Ord k => Set k -> Maybe k
+findMin s = T23.minimum s >>= return . fst
 
-findMax :: Ord k => Set k -> Maybe k
-findMax = T23.maximum E.key
+findMax s = T23.maximum s >>= return . fst
 
