@@ -3,7 +3,8 @@ module Data.Tree23.SortedMap (
   Map,
   empty, singleton,
   null, size,        
-  insert, insertWith, insertAll,
+  insert, insertAll, 
+  insertWith, insertAllWith,
   delete, deleteAll,
   member, notMember,
   lookup,        
@@ -52,6 +53,9 @@ insertWith = T23.insertWith
 
 insertAll :: (Ord k, Foldable t) => t (k, v) -> Map k v -> Map k v
 insertAll xs map = F.foldl' (flip insert) map xs
+
+insertAllWith :: (Ord k, Foldable t) => (v -> v -> v) -> t (k, v) -> Map k v -> Map k v
+insertAllWith f xs map = F.foldl' (flip (insertWith f)) map xs
 
 delete :: Ord k => k -> Map k v -> Map k v
 delete = T23.delete
@@ -121,7 +125,6 @@ unionsWith :: (Ord k) => (a -> a -> a) -> [Map k a] -> Map k a
 unionsWith f [] = T23.empty
 unionsWith f (hd:tl) = insertAllWith f tailElems hd
         where tailElems = L.concatMap toList tl
-              insertAllWith f xs map = L.foldl' (flip (insertWith f)) map xs
               
 ----------------------------------------------------------------
 
