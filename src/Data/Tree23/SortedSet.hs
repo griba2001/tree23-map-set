@@ -101,7 +101,7 @@ instance (Ord a) => Monoid (Set a) where  -- requires extensions TypeSynonymInst
 difference, intersection :: (Ord k) => Set k -> Set k -> Set k
 
 -- difference O(m · log n)
-difference tx ty = L.foldl' (flip delete) tx (toList ty)
+difference tx ty = deleteAll (toList ty) tx
 
 {-
 -- intersection
