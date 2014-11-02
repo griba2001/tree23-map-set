@@ -45,7 +45,7 @@ insertWith :: Ord k => (v -> v -> v) -> (k, v) -> Tree k v -> Tree k v
 insertWith f (k, v) Nil = singleton k v
 insertWith f (k, v) !arb = case insertToRes f (Entry k v Valid) arb of
                      ResTree res -> res
-                     ResBranch4 f1 a f2 b f3 c f4 -> Branch2 (Branch2 f1 a f2) b (Branch2 f3 c f4)
+                     ResBranch4 ch1 a ch2 b ch3 c ch4 -> Branch2 (Branch2 ch1 a ch2) b (Branch2 ch3 c ch4)
 
 
 -- private: insertToRes entry with collision combine function f
@@ -69,23 +69,23 @@ insertToRes f x (Branch2 esq y dreta)
         | x == y = ResTree $ Branch2 esq (combineEntry f y x) dreta
         | x < y = case insertToRes f x esq of
                        ResTree arb -> ResTree $ Branch2 arb y dreta
-                       ResBranch4 f1 a f2 b f3 c f4 -> ResTree $ Branch3 (Branch2 f1 a f2) b (Branch2 f3 c f4) y dreta
+                       ResBranch4 ch1 a ch2 b ch3 c ch4 -> ResTree $ Branch3 (Branch2 ch1 a ch2) b (Branch2 ch3 c ch4) y dreta
         | otherwise = case insertToRes f x dreta of
                            ResTree arb -> ResTree $ Branch2 esq y arb
-                           ResBranch4 f1 a f2 b f3 c f4 -> ResTree $ Branch3 esq y (Branch2 f1 a f2) b (Branch2 f3 c f4)
+                           ResBranch4 ch1 a ch2 b ch3 c ch4 -> ResTree $ Branch3 esq y (Branch2 ch1 a ch2) b (Branch2 ch3 c ch4)
 
 insertToRes f x (Branch3 esq y mig z dreta)
         | x == y = ResTree $ Branch3 esq (combineEntry f y x) mig z dreta
         | x == z = ResTree $ Branch3 esq y mig (combineEntry f z x) dreta
         | x < y = case insertToRes f x esq of
                         ResTree arb -> ResTree $ Branch3 arb y mig z dreta
-                        ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 (Branch2 f1 a f2) b (Branch2 f3 c f4) y mig z dreta
+                        ResBranch4 ch1 a ch2 b ch3 c ch4 -> ResBranch4 (Branch2 ch1 a ch2) b (Branch2 ch3 c ch4) y mig z dreta
         | x < z = case insertToRes f x mig of
                         ResTree arb -> ResTree $ Branch3 esq y arb z dreta
-                        ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 esq y (Branch2 f1 a f2) b (Branch2 f3 c f4) z dreta
+                        ResBranch4 ch1 a ch2 b ch3 c ch4 -> ResBranch4 esq y (Branch2 ch1 a ch2) b (Branch2 ch3 c ch4) z dreta
         | otherwise = case insertToRes f x dreta of
                           ResTree arb -> ResTree $ Branch3 esq y mig z arb
-                          ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 esq y mig z (Branch2 f1 a f2) b (Branch2 f3 c f4)
+                          ResBranch4 ch1 a ch2 b ch3 c ch4 -> ResBranch4 esq y mig z (Branch2 ch1 a ch2) b (Branch2 ch3 c ch4)
 
 {-
 update :: Ord k => Entry k v -> Tree k v -> Tree k v
