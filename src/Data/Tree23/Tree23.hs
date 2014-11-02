@@ -40,52 +40,50 @@ size Nil = 0
 size (Branch2 esq _ dreta) = 1 + size esq + size dreta
 size (Branch3 esq _ mig _ dreta) = 2 + size esq + size mig + size dreta
 
-
-
--- insert or update (strict to avoid O(n) stack pending ops when used with List.foldl').
+-- insertWith: insert or update (strict to avoid O(n) stack pending ops when used with List.foldl').
 insertWith :: Ord k => (v -> v -> v) -> (k, v) -> Tree k v -> Tree k v
 insertWith f (k, v) Nil = singleton k v
-insertWith f (k, v) !arb = case insert f (Entry k v Valid) arb of
+insertWith f (k, v) !arb = case insertToRes f (Entry k v Valid) arb of
                      ResTree res -> res
                      ResBranch4 f1 a f2 b f3 c f4 -> Branch2 (Branch2 f1 a f2) b (Branch2 f3 c f4)
 
 
--- private: insert entry with collision combine function f
-insert :: Ord k => (v -> v -> v) -> Entry k v -> Tree k v -> Result k v
+-- private: insertToRes entry with collision combine function f
+insertToRes :: Ord k => (v -> v -> v) -> Entry k v -> Tree k v -> Result k v
 
-insert f x Nil = ResTree $ Branch2 Nil x Nil
+insertToRes f x Nil = ResTree $ Branch2 Nil x Nil
 
-insert f x (Branch2 Nil y Nil)
+insertToRes f x (Branch2 Nil y Nil)
     | x == y = ResTree $ Branch2 Nil (combineEntry f y x) Nil
     | x < y = ResTree $ Branch3 Nil x Nil y Nil
     | otherwise = ResTree $ Branch3 Nil y Nil x Nil
 
-insert f x (Branch3 Nil y Nil z Nil)
+insertToRes f x (Branch3 Nil y Nil z Nil)
     | x == y = ResTree $ Branch3 Nil (combineEntry f y x) Nil z Nil
     | x == z = ResTree $ Branch3 Nil y Nil (combineEntry f z x) Nil
     | x < y = ResBranch4 Nil x Nil y Nil z Nil
     | x < z = ResBranch4 Nil y Nil x Nil z Nil
     | otherwise = ResBranch4 Nil y Nil z Nil x Nil
 
-insert f x (Branch2 esq y dreta)
+insertToRes f x (Branch2 esq y dreta)
         | x == y = ResTree $ Branch2 esq (combineEntry f y x) dreta
-        | x < y = case insert f x esq of
+        | x < y = case insertToRes f x esq of
                        ResTree arb -> ResTree $ Branch2 arb y dreta
                        ResBranch4 f1 a f2 b f3 c f4 -> ResTree $ Branch3 (Branch2 f1 a f2) b (Branch2 f3 c f4) y dreta
-        | otherwise = case insert f x dreta of
+        | otherwise = case insertToRes f x dreta of
                            ResTree arb -> ResTree $ Branch2 esq y arb
                            ResBranch4 f1 a f2 b f3 c f4 -> ResTree $ Branch3 esq y (Branch2 f1 a f2) b (Branch2 f3 c f4)
 
-insert f x (Branch3 esq y mig z dreta)
+insertToRes f x (Branch3 esq y mig z dreta)
         | x == y = ResTree $ Branch3 esq (combineEntry f y x) mig z dreta
         | x == z = ResTree $ Branch3 esq y mig (combineEntry f z x) dreta
-        | x < y = case insert f x esq of
+        | x < y = case insertToRes f x esq of
                         ResTree arb -> ResTree $ Branch3 arb y mig z dreta
                         ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 (Branch2 f1 a f2) b (Branch2 f3 c f4) y mig z dreta
-        | x < z = case insert f x mig of
+        | x < z = case insertToRes f x mig of
                         ResTree arb -> ResTree $ Branch3 esq y arb z dreta
                         ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 esq y (Branch2 f1 a f2) b (Branch2 f3 c f4) z dreta
-        | otherwise = case insert f x dreta of
+        | otherwise = case insertToRes f x dreta of
                           ResTree arb -> ResTree $ Branch3 esq y mig z arb
                           ResBranch4 f1 a f2 b f3 c f4 -> ResBranch4 esq y mig z (Branch2 f1 a f2) b (Branch2 f3 c f4)
 
@@ -135,13 +133,12 @@ member k t = isJust $ lookup k t
 
 delete :: Ord k => k -> Tree k v -> Tree k v
 delete _ Nil = Nil
-
-delete k ar @ (Branch2 esq y dreta)
+delete k !ar @ (Branch2 esq y dreta)
         | k == key y = Branch2 esq (invalidate y) dreta
         | k < key y = Branch2 (delete k esq) y dreta
         | otherwise = Branch2 esq y (delete k dreta)
 
-delete k ar @ (Branch3 esq y mig z dreta)
+delete k !ar @ (Branch3 esq y mig z dreta)
         | k == key y = Branch3 esq (invalidate y) mig z dreta
         | k == key z = Branch3 esq y mig (invalidate z) dreta
         | k < key y = Branch3 (delete k esq) y mig z dreta

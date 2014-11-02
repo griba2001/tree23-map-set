@@ -68,7 +68,7 @@ lookup = T23.lookup
 ---------------------------------------------------------------
 
 fromList :: (Ord k, Foldable t) => t (k, v) -> Map k v
-fromList xs = F.foldl' (flip insert) empty xs
+fromList xs = insertAll xs empty
 
 toList :: Map k v -> [(k, v)]
 toList = T23.toList
@@ -106,21 +106,23 @@ unionWith :: Ord k => (a -> a -> a) -> Map k a -> Map k a -> Map k a
 unionWith f tx ty = L.foldl' (flip (T23.insertWith f)) ty (toList tx)
 
 unionL, unionR, union :: Ord k => Map k v -> Map k v -> Map k v
-unionR tx ty = L.foldl' (flip insert) tx (toList ty) -- on collision it keeps last inserted
-unionL tx ty = L.foldl' (flip insert) ty (toList tx) -- on collision it keeps last inserted
+unionR tx ty = insertAll (toList ty) tx -- on collision it keeps last inserted
+unionL tx ty = insertAll (toList tx) ty -- on collision it keeps last inserted
 union = unionL
 
 ----------------------------------------------------------------
 
 unions :: (Ord k) => [Map k v] -> Map k v
 unions [] = T23.empty
-unions (hd:tl) = L.foldl' (flip insert) hd tailElems
+unions (hd:tl) = insertAll tailElems hd
         where tailElems = L.concatMap toList tl
 
 unionsWith :: (Ord k) => (a -> a -> a) -> [Map k a] -> Map k a
 unionsWith f [] = T23.empty
-unionsWith f (hd:tl) = L.foldl' (flip (T23.insertWith f)) hd tailElems
+unionsWith f (hd:tl) = insertAllWith f tailElems hd
         where tailElems = L.concatMap toList tl
+              insertAllWith f xs map = L.foldl' (flip (insertWith f)) map xs
+              
 ----------------------------------------------------------------
 
 -- remove deleted

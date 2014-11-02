@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, BangPatterns #-}
 module Data.Tree23.SortedSet (
   Set,
   empty, singleton,
@@ -44,14 +44,14 @@ size = T23.size
 
 -- | insert O( log n)
 insert :: Ord k => k -> Set k -> Set k
-insert k = T23.insertWith (const) (k, ())
+insert k !set = T23.insertWith (const) (k, ()) set
 
 insertAll :: (Ord k, Foldable t) => t k -> Set k -> Set k
 insertAll xs set = F.foldl' (flip insert) set xs
 
 -- | delete O( log n)
 delete :: Ord k => k -> Set k -> Set k
-delete k = T23.delete k
+delete = T23.delete
 
 deleteAll :: (Ord k, Foldable t) => t k -> Set k -> Set k
 deleteAll xs set = F.foldl' (flip delete) set xs
@@ -65,7 +65,7 @@ notMember k = not . T23.member k
 
 -- | fromList O( n)
 fromList :: (Ord k, Foldable t) => t k -> Set k
-fromList xs = F.foldl' (flip insert) empty xs
+fromList xs = insertAll xs empty
 
 -- | toList O( n) uses DList to append the subtrees and nodes results
 toList :: Set k -> [k]
@@ -90,8 +90,8 @@ partition p xs = (filter p xs, filter (not . p) xs)
 ----------------------------------------------------------------
 
 unionL, unionR, union :: Ord k => Set k -> Set k -> Set k
-unionR tx ty = L.foldl' (flip insert) tx (toList ty) -- on collision it keeps last inserted
-unionL tx ty = L.foldl' (flip insert) ty (toList tx) -- on collision it keeps last inserted
+unionR tx ty = insertAll (toList ty) tx -- on collision it keeps last inserted
+unionL tx ty = insertAll (toList tx) ty -- on collision it keeps last inserted
 union = unionL
 
 instance (Ord a) => Monoid (Set a) where  -- requires extensions TypeSynonymInstances, FlexibleInstances
@@ -113,7 +113,7 @@ intersection tx ty = flipValidity diff -- turn valids off, invalids on
     -}
     
 -- intersection O(n · log m)
-intersection tx ty = L.foldl' (flip insert) empty xs
+intersection tx ty = insertAll xs empty
   where
     xs = [x | x <- toList tx, x `member` ty]
     
@@ -121,7 +121,7 @@ intersection tx ty = L.foldl' (flip insert) empty xs
 
 unions :: (Ord k) => [Set k] -> Set k
 unions [] = T23.empty
-unions (hd:tl) = L.foldl' (flip insert) hd tailElems
+unions (hd:tl) = insertAll tailElems hd 
         where tailElems = L.concatMap toList tl
               
 ----------------------------------------------------------------
